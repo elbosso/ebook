@@ -3,6 +3,7 @@ import os
 import ebooklib
 import zipfile
 from PIL import Image, ImageDraw, ImageFont
+from docutils.nodes import image
 from ebooklib import epub
 from ebooklib.utils import debug
 
@@ -13,8 +14,8 @@ class ImageGenerator:
     imgCounter=0
     cssFileName = "/tmp/ebook.css"
 
-    def preRenderBook(self, fileWithPath, panel_width, panel_height, border, fontSizeInPx,transpose,tmpPath,type):
-        imgCounter=0
+    def preRenderBook(self, fileWithPath, panel_width, panel_height, border, fontSizeInPx,transpose,tmpPath,type,page):
+        self.imgCounter=0
 
         css=open(self.cssFileName, "w")
         css.write('html {font-size: '+str(fontSizeInPx)+'px;}')
@@ -32,12 +33,22 @@ class ImageGenerator:
         debug('================================')
         debug('DOCUMENTS')
 
+        smallImgName = tmpPath + '/' + (str(page)) + type
         for x in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-            if x.is_chapter():
-                self.preRenderChapter(tmpPath+'/book/' + 'OPS/' + x.get_name(), panel_width, panel_height, border,transpose,tmpPath,type)
-        debug('================================')
+            if(os.path.isfile(smallImgName)):
+                break
+            else:
+                if x.is_chapter():
+                    print(x.get_name() +' '+tmpPath + '/'+x.get_name()+'_'+type+'.txt'+' '+str(os.path.isfile(tmpPath + '/'+x.get_name()+'.txt')))
+                    if (os.path.isfile(tmpPath + '/'+x.get_name()+'_'+type+'.txt')):
+                        with open(tmpPath + '/'+x.get_name()+'_'+type+'.txt', 'r') as f:
+                            self.imgCounter = int(f.readline())
+                    else:
+                        self.preRenderChapter(tmpPath+'/book/' + 'OPS/' + x.get_name(), panel_width, panel_height, border,transpose,tmpPath,type)
+                        with open(tmpPath + '/'+x.get_name()+'_'+type+'.txt', 'w') as f:
+                            f.write('%d' % self.imgCounter)
+        debug('====os.path.isfile()============================')
         os.remove(self.cssFileName)
-
 
     def preRenderChapter(self, fileWithName, panel_width, panel_height, border,transpose,tmpPath,type):
         bl,br,bt,bb=border
