@@ -13,7 +13,7 @@ class ImageGenerator:
     imgCounter=0
     cssFileName = "/tmp/ebook.css"
 
-    def preRenderBook(self, fileWithPath, panel_width, panel_height, border, fontSizeInPx,transpose,tmpPath):
+    def preRenderBook(self, fileWithPath, panel_width, panel_height, border, fontSizeInPx,transpose,tmpPath,type):
         imgCounter=0
 
         css=open(self.cssFileName, "w")
@@ -34,12 +34,12 @@ class ImageGenerator:
 
         for x in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
             if x.is_chapter():
-                self.preRenderChapter(tmpPath+'/book/' + 'OPS/' + x.get_name(), panel_width, panel_height, border,transpose,tmpPath)
+                self.preRenderChapter(tmpPath+'/book/' + 'OPS/' + x.get_name(), panel_width, panel_height, border,transpose,tmpPath,type)
         debug('================================')
         os.remove(self.cssFileName)
 
 
-    def preRenderChapter(self, fileWithName, panel_width, panel_height, border,transpose,tmpPath):
+    def preRenderChapter(self, fileWithName, panel_width, panel_height, border,transpose,tmpPath,type):
         bl,br,bt,bb=border
         height=panel_height-bt-bb
         width=panel_width-bl-br
@@ -61,7 +61,7 @@ class ImageGenerator:
                 'width':str(width),
                 'user-style-sheet': self.cssFileName
             }
-            smallImgName=tmpPath+'/'+(str(self.imgCounter))+'.pbm'
+            smallImgName=tmpPath+'/'+(str(self.imgCounter))+type
             imgkit.from_url(fileWithName, smallImgName,options=options)
             off=off+height
             im = Image.open(smallImgName)
@@ -79,20 +79,28 @@ class ImageGenerator:
                     break
             if(black_lines>0):
                 off=off-black_lines-2
-
-            newImage = Image.new('L', (panel_width,panel_height), 255)
+            if((type==".pgm") or (type=='.pbm')):
+                newImage = Image.new('L', (panel_width,panel_height), 255)
+            else:
+                newImage = Image.new('RGB',(panel_width,panel_height))
+                button_draw = ImageDraw.Draw(newImage)
+                button_draw.rectangle([0,0,bl*2+width,bt*3+height], fill=(255,255,255))
             newImage.paste(im.crop((0,0,width,height-black_lines)), (bl, bt))
             button_draw = ImageDraw.Draw(newImage)
             owidth, oheight = im.size
             if(oheight<height):
                 xy=[bl,bt+oheight,bl+width,bt+height]
-                button_draw.rectangle(xy,fill=(255))
+                if ((type == ".pgm") or (type == '.pbm')):
+                    button_draw.rectangle(xy,fill=(255))
+                else:
+                    button_draw.rectangle(xy, fill=(255,255,255))
             button_draw.text((width/2, height+bt+1), str(self.imgCounter), font=ImageFont.truetype("DejaVuSans",bb-2), fill=(1))
             del button_draw
 
             if(transpose is not None):
                 newImage=newImage.transpose(transpose)
-            newImage=newImage.convert('1')
+            if(type == '.pbm'):
+                newImage=newImage.convert('1')
             newImage.save(smallImgName)
             self.imgCounter = self.imgCounter + 1
             print(smallImgName);

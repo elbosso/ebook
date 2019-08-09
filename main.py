@@ -8,8 +8,8 @@ app=flask.Flask(__name__)
 mappings = {90: Image.ROTATE_90, 190: Image.ROTATE_180, 270: Image.ROTATE_270}
 
 
-@app.route('/<file>/<int:panel_width>/<int:panel_height>/<int:border>/<int:fontSizeInPx>/<int:amount>')
-def epubOnDemandRender(file, panel_width, panel_height, border, fontSizeInPx, amount):
+@app.route('/<file>/<int:panel_width>/<int:panel_height>/<int:border>/<int:fontSizeInPx>/<int:amount>/<type>')
+def epubOnDemandRender(file, panel_width, panel_height, border, fontSizeInPx, amount,type):
     print(file)
     print(panel_width)
     print(panel_height)
@@ -23,7 +23,7 @@ def epubOnDemandRender(file, panel_width, panel_height, border, fontSizeInPx, am
     tmpPath='tmp/'+file+'/'+str(panel_width)+'/'+str(panel_height)+'/'+str(border)+'/'+str(fontSizeInPx)+'/'+str(amount)
     imageGenerator.preRenderBook(
         'books/'+file, panel_width,panel_height,
-        (border,border,border,border+10), fontSizeInPx,transpose,tmpPath)
+        (border,border,border,border+10), fontSizeInPx,transpose,tmpPath,'.'+type)
     return "huhu"
 
 def main():
