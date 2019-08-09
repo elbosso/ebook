@@ -13,7 +13,7 @@ class ImageGenerator:
     imgCounter=0
     cssFileName = "/tmp/ebook.css"
 
-    def preRenderBook(self, fileWithPath, panel_width, panel_height, border, fontSizeInPx,transpose):
+    def preRenderBook(self, fileWithPath, panel_width, panel_height, border, fontSizeInPx,transpose,tmpPath):
         imgCounter=0
 
         css=open(self.cssFileName, "w")
@@ -21,7 +21,7 @@ class ImageGenerator:
         css.close()
 
         zip_ref = zipfile.ZipFile(fileWithPath, 'r')
-        zip_ref.extractall('/tmp/book')
+        zip_ref.extractall(tmpPath+'/book/')
         zip_ref.close()
         book = epub.read_epub(fileWithPath)
 
@@ -34,12 +34,12 @@ class ImageGenerator:
 
         for x in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
             if x.is_chapter():
-                self.preRenderChapter('/tmp/book/' + 'OPS/' + x.get_name(), panel_width, panel_height, border,transpose)
+                self.preRenderChapter(tmpPath+'/book/' + 'OPS/' + x.get_name(), panel_width, panel_height, border,transpose,tmpPath)
         debug('================================')
         os.remove(self.cssFileName)
 
 
-    def preRenderChapter(self, fileWithName, panel_width, panel_height, border,transpose):
+    def preRenderChapter(self, fileWithName, panel_width, panel_height, border,transpose,tmpPath):
         bl,br,bt,bb=border
         height=panel_height-bt-bb
         width=panel_width-bl-br
@@ -48,9 +48,9 @@ class ImageGenerator:
             'width': str(panel_width),
             'user-style-sheet': self.cssFileName
         }
-        chapter_image='/tmp/out.png'
+        chapter_image=tmpPath+'/out.png'
         imgkit.from_url(fileWithName, chapter_image,options=options)
-        im = Image.open('/tmp/out.png')
+        im = Image.open(tmpPath+'/out.png')
         iwidth, iheight = im.size
         off=0
         while(off<iheight):
@@ -61,7 +61,7 @@ class ImageGenerator:
                 'width':str(width),
                 'user-style-sheet': self.cssFileName
             }
-            smallImgName='/tmp/'+(str(self.imgCounter))+'.pbm'
+            smallImgName=tmpPath+'/'+(str(self.imgCounter))+'.pbm'
             imgkit.from_url(fileWithName, smallImgName,options=options)
             off=off+height
             im = Image.open(smallImgName)

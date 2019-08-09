@@ -1,9 +1,32 @@
 import render.ImageGenerator
 import sys
 from PIL import Image
+import flask
+import os
+
+app=flask.Flask(__name__)
+mappings = {90: Image.ROTATE_90, 190: Image.ROTATE_180, 270: Image.ROTATE_270}
+
+
+@app.route('/<file>/<int:panel_width>/<int:panel_height>/<int:border>/<int:fontSizeInPx>/<int:amount>')
+def epubOnDemandRender(file, panel_width, panel_height, border, fontSizeInPx, amount):
+    print(file)
+    print(panel_width)
+    print(panel_height)
+    print(border)
+    print(fontSizeInPx)
+    print(amount)
+    print(os.path.dirname(os.path.realpath('.')))
+    imageGenerator = render.ImageGenerator.ImageGenerator()
+    transpose=Image.ROTATE_90
+    transpose=mappings.get(amount,Image.ROTATE_90)
+    tmpPath='tmp/'+file+'/'+str(panel_width)+'/'+str(panel_height)+'/'+str(border)+'/'+str(fontSizeInPx)+'/'+str(amount)
+    imageGenerator.preRenderBook(
+        'books/'+file, panel_width,panel_height,
+        (border,border,border,border+10), fontSizeInPx,transpose,tmpPath)
+    return "huhu"
 
 def main():
-    mappings = {90: Image.ROTATE_90,190: Image.ROTATE_180,270: Image.ROTATE_270}
 
     imageGenerator = render.ImageGenerator.ImageGenerator()
     transpose=Image.ROTATE_90
